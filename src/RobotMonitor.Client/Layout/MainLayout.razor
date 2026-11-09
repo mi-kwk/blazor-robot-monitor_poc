@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+@implements IDisposable
+@inject MonitorClient Monitor
+
+<header class="topbar">
+    <div class="brand">ロボット監視（個人 PoC）</div>
+    <nav>
+        <NavLink href="" Match="NavLinkMatch.All">一覧</NavLink>
+        <NavLink href="map">倉庫の地図</NavLink>
+        <NavLink href="alerts">
+            異常の一覧
+            @if (Monitor.UnacknowledgedCount > 0)
+            {
+                <span class="badge">@Monitor.UnacknowledgedCount</span>
+            }
+        </NavLink>
+    </nav>
+    <div class="link @LinkClass">@LinkText</div>
+</header>
+
+@if (Monitor.State != LinkState.Connected)
+{
+    <div class="banner">
+        サーバーとの接続が切れています。つなぎ直しています…
+        （画面はブラウザの中で動き続けていますが、表示しているのは最後に届いた状態です）
+    </div>
+}
+
+<main>
+    @Body
+</main>
+
+<div id="blazor-error-ui" data-nosnippet>
+    予期しないエラーが起きました。
+    <a href="." class="reload">再読み込み</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Monitor.Changed += OnChanged;
+        await Monitor.StartAsync();
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Monitor.Changed -= OnChanged;
+
+    private string LinkClass => Monitor.State == LinkState.Connected ? "ok" : "ng";
+
+    private string LinkText => Monitor.State switch
+    {
+        LinkState.Connected => $"接続中　最終受信 {Monitor.LastReceived:HH:mm:ss}",
+        LinkState.Connecting => "接続しています…",
+        LinkState.Reconnecting => "再接続中…",
+        _ => "切断",
+    };
+}

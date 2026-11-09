@@ -1,0 +1,140 @@
+/* ロボット監視画面の見た目。部品集は使わず、素の CSS で書いている。 */
+
+:root {
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --text: #1f2328;
+    --muted: #6b7280;
+    --line: #d9dde3;
+    --accent: #2563eb;
+    --idle: #6b7280;
+    --moving: #2563eb;
+    --working: #16a34a;
+    --fault: #dc2626;
+    --disconnected: #111827;
+    --warn: #d97706;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+main { padding: 16px 24px 48px; }
+
+h1 { font-size: 1.4rem; margin: 8px 0 16px; }
+h1:focus { outline: none; }
+
+.muted { color: var(--muted); }
+
+/* ---- 上部の帯 ---- */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 10px 24px;
+    background: #1f2937;
+    color: #fff;
+    flex-wrap: wrap;
+}
+.topbar .brand { font-weight: bold; }
+.topbar nav { display: flex; gap: 16px; flex: 1; }
+.topbar nav a { color: #cbd5e1; text-decoration: none; padding: 4px 8px; border-radius: 4px; }
+.topbar nav a.active { background: #374151; color: #fff; }
+.topbar .link { font-size: 0.85rem; }
+.topbar .link.ok::before { content: "● "; color: #4ade80; }
+.topbar .link.ng::before { content: "● "; color: #f87171; }
+
+.badge {
+    display: inline-block;
+    min-width: 1.4em;
+    padding: 0 6px;
+    margin-left: 4px;
+    border-radius: 999px;
+    background: var(--fault);
+    color: #fff;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.banner {
+    padding: 10px 24px;
+    background: #fef3c7;
+    border-bottom: 1px solid #f59e0b;
+    color: #78350f;
+}
+
+/* ---- 一覧 ---- */
+.summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { padding: 4px 10px; border-radius: 999px; color: #fff; font-size: 0.9rem; }
+
+.filter { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+select, .btn { font: inherit; padding: 4px 10px; }
+.btn { border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 4px; cursor: pointer; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn.small { padding: 2px 8px; font-size: 0.85rem; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--idle);
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+.card.has-alert { box-shadow: 0 0 0 2px var(--fault); }
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.card .id { font-weight: bold; font-size: 1.1rem; }
+.card .state { font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; color: #fff; background: var(--idle); }
+.card dl { display: grid; grid-template-columns: 4.5em 1fr; gap: 2px 8px; margin: 0; font-size: 0.9rem; }
+.card dt { color: var(--muted); }
+.card dd { margin: 0; display: flex; align-items: center; gap: 6px; }
+.card dd.hot { color: var(--fault); font-weight: bold; }
+.bar { flex: 1; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--working); }
+.bar .fill.low { background: var(--fault); }
+.alerts { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.alert-tag { font-size: 0.8rem; padding: 1px 6px; border-radius: 4px; background: #fee2e2; color: #991b1b; }
+
+/* 状態ごとの色 */
+.st-idle { --c: var(--idle); }
+.st-moving { --c: var(--moving); }
+.st-working { --c: var(--working); }
+.st-fault { --c: var(--fault); }
+.st-disconnected { --c: var(--disconnected); }
+.card[class*="st-"] { border-left-color: var(--c); }
+.card[class*="st-"] .state, .chip[class*="st-"] { background: var(--c); }
+.card.st-disconnected { opacity: 0.6; }
+
+/* ---- 異常の一覧 ---- */
+table.grid { width: 100%; border-collapse: collapse; background: var(--panel); }
+table.grid th, table.grid td { border-bottom: 1px solid var(--line); padding: 6px 10px; text-align: left; font-size: 0.9rem; }
+table.grid th { background: #f3f4f6; }
+table.grid tr.unacked td:first-child { border-left: 4px solid var(--fault); }
+table.grid tr.resolved { color: var(--muted); }
+
+/* ---- 地図 ---- */
+.map { display: grid; gap: 2px; background: var(--line); padding: 2px; max-width: 900px; }
+.map .cell { background: var(--panel); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; gap: 1px; flex-wrap: wrap; }
+.dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: 50%;
+    background: var(--c, var(--idle));
+    color: #fff;
+    font-size: 0.7rem;
+}
+.legend { display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap; }
+.legend > span { display: inline-flex; align-items: center; gap: 4px; }
+.legend .dot { width: 1em; height: 1em; }
+
+/* ---- Blazor の既定のエラー表示 ---- */
+.blazor-error-boundary { background: #b32121; padding: 1rem; color: white; }
+.blazor-error-boundary::after { content: "エラーが起きました。"; }

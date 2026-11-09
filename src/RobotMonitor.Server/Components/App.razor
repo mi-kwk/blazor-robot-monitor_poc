@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["RobotMonitor.Server.styles.css"]" />
+    <ImportMap />
+    <HeadOutlet @rendermode="PageRenderMode" />
+</head>
+
+<body>
+    <Routes @rendermode="PageRenderMode" />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>
+
+@code {
+    // 画面はブラウザの中（WebAssembly）だけで動かす。
+    // prerender: false にして、サーバー側で先に描く処理（事前レンダリング）を止めている。
+    // 事前レンダリングを使うと、画面の部品がサーバー側でも一度動くため、ブラウザ用のサービスをサーバーにも登録する必要がある。
+    private static readonly IComponentRenderMode PageRenderMode = new InteractiveWebAssemblyRenderMode(prerender: false);
+}

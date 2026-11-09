@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RobotMonitor.Client/RobotMonitor.Client.csproj" />
+    <Project Path="src/RobotMonitor.Server/RobotMonitor.Server.csproj" />
+    <Project Path="src/RobotMonitor.Shared/RobotMonitor.Shared.csproj" />
+    <Project Path="src/RobotMonitor.Simulator/RobotMonitor.Simulator.csproj" />
+  </Folder>
+</Solution>

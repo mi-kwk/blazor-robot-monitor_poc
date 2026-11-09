@@ -1,0 +1,83 @@
+﻿@page "/"
+@inherits MonitorComponentBase
+
+<PageTitle>一覧 | ロボット監視</PageTitle>
+
+<h1>ロボットの一覧</h1>
+
+<div class="summary">
+    @foreach (var g in Counts())
+    {
+        <span class="chip @g.Css">@g.Label @g.Count 台</span>
+    }
+</div>
+
+<div class="filter">
+    表示：
+    <select @bind="filter">
+        <option value="">すべて</option>
+        <option value="alert">異常があるものだけ</option>
+        <option value="disconnected">通信断</option>
+        @foreach (var s in Enum.GetValues<RobotState>())
+        {
+            <option value="@s">@Labels.Of(s)</option>
+        }
+    </select>
+</div>
+
+@if (Monitor.Robots.Count == 0)
+{
+    <p class="muted">まだロボットから報告が届いていません。模擬ロボット（RobotMonitor.Simulator）を起動してください。</p>
+}
+
+<div class="cards">
+    @foreach (var r in Filtered())
+    {
+        <div class="card @StateClass(r) @(r.ActiveAlerts.Count > 0 ? "has-alert" : "")">
+            <div class="card-head">
+                <span class="id">@r.RobotId</span>
+                <span class="state">@StateLabel(r)</span>
+            </div>
+            <dl>
+                <dt>電池</dt>
+                <dd>
+                    <div class="bar"><div class="fill @(r.Battery < Thresholds.LowBattery ? "low" : "")" style="width:@(Math.Clamp(r.Battery, 0, 100).ToString("F0"))%"></div></div>
+                    @r.Battery.ToString("F0")%
+                </dd>
+                <dt>温度</dt>
+                <dd class="@(r.Temperature > Thresholds.HighTemp ? "hot" : "")">@r.Temperature.ToString("F1")℃</dd>
+                <dt>位置</dt>
+                <dd>(@r.X, @r.Y)</dd>
+                <dt>最終報告</dt>
+                <dd>@r.LastSeen.ToLocalTime().ToString("HH:mm:ss")</dd>
+            </dl>
+            @if (r.ActiveAlerts.Count > 0)
+            {
+                <div class="alerts">
+                    @foreach (var k in r.ActiveAlerts)
+                    {
+                        <span class="alert-tag">⚠ @Labels.Of(k)</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string filter = "";
+
+    private IEnumerable<RobotView> Filtered() => filter switch
+    {
+        "" => Monitor.Robots,
+        "alert" => Monitor.Robots.Where(r => r.ActiveAlerts.Count > 0),
+        "disconnected" => Monitor.Robots.Where(r => r.Disconnected),
+        _ => Monitor.Robots.Where(r => !r.Disconnected && r.State.ToString() == filter),
+    };
+
+    private IEnumerable<(string Label, string Css, int Count)> Counts() =>
+        Monitor.Robots
+            .GroupBy(r => (Label: StateLabel(r), Css: StateClass(r)))
+            .OrderBy(g => g.Key.Label)
+            .Select(g => (g.Key.Label, g.Key.Css, g.Count()));
+}

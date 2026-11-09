@@ -1,0 +1,71 @@
+@page "/alerts"
+@inherits MonitorComponentBase
+
+<PageTitle>異常の一覧 | ロボット監視</PageTitle>
+
+<h1>異常の一覧</h1>
+
+<div class="filter">
+    <label><input type="checkbox" @bind="onlyActive" /> 続いている異常だけ表示</label>
+    <label><input type="checkbox" @bind="onlyUnacked" /> 未確認だけ表示</label>
+    <button class="btn" disabled="@(Monitor.UnacknowledgedCount == 0)" @onclick="Monitor.AcknowledgeAllAsync">
+        すべて確認済みにする（@Monitor.UnacknowledgedCount 件）
+    </button>
+</div>
+
+@if (!Filtered().Any())
+{
+    <p class="muted">表示する異常はありません。</p>
+}
+else
+{
+    <table class="grid">
+        <thead>
+            <tr>
+                <th>#</th><th>起きた時刻</th><th>ロボット</th><th>種類</th><th>内容</th><th>状況</th><th>確認</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var a in Filtered())
+            {
+                <tr class="@(a.IsActive ? "active" : "resolved") @(a.Acknowledged ? "" : "unacked")">
+                    <td>@a.Id</td>
+                    <td>@a.RaisedAt.ToLocalTime().ToString("HH:mm:ss")</td>
+                    <td>@a.RobotId</td>
+                    <td>@Labels.Of(a.Kind)</td>
+                    <td>@a.Message</td>
+                    <td>
+                        @if (a.IsActive)
+                        {
+                            <span class="alert-tag">続いている</span>
+                        }
+                        else
+                        {
+                            <span>@a.ResolvedAt!.Value.ToLocalTime().ToString("HH:mm:ss") に正常に戻った</span>
+                        }
+                    </td>
+                    <td>
+                        @if (a.Acknowledged)
+                        {
+                            <span class="muted">確認済み</span>
+                        }
+                        else
+                        {
+                            <button class="btn small" @onclick="() => Monitor.AcknowledgeAsync(a.Id)">確認済みにする</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private bool onlyActive;
+    private bool onlyUnacked;
+
+    private IEnumerable<Alert> Filtered() =>
+        Monitor.Alerts
+            .Where(a => !onlyActive || a.IsActive)
+            .Where(a => !onlyUnacked || !a.Acknowledged);
+}

@@ -1,0 +1,31 @@
+@page "/map"
+@inherits MonitorComponentBase
+
+<PageTitle>倉庫の地図 | ロボット監視</PageTitle>
+
+<h1>倉庫の地図</h1>
+<p class="muted">@Thresholds.GridWidth × @Thresholds.GridHeight のマス目。丸がロボットで、色は状態を表します。</p>
+
+<div class="map" style="grid-template-columns: repeat(@Thresholds.GridWidth, 1fr);">
+    @for (var y = 0; y < Thresholds.GridHeight; y++)
+    {
+        @for (var x = 0; x < Thresholds.GridWidth; x++)
+        {
+            var here = Monitor.Robots.Where(r => r.X == x && r.Y == y).ToList();
+            <div class="cell">
+                @foreach (var r in here)
+                {
+                    <span class="dot @StateClass(r)" title="@r.RobotId：@StateLabel(r)">@r.RobotId[^2..]</span>
+                }
+            </div>
+        }
+    }
+</div>
+
+<div class="legend">
+    @foreach (var s in Enum.GetValues<RobotState>())
+    {
+        <span><span class="dot st-@s.ToString().ToLowerInvariant()"></span>@Labels.Of(s)</span>
+    }
+    <span><span class="dot st-disconnected"></span>通信断</span>
+</div>
